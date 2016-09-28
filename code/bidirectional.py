@@ -199,6 +199,7 @@ def create(model, config):
 
 		with tf.name_scope('crossentropy'):
 			model['cce'] = tf.reduce_sum(-tf.mul(model['clabel'], tf.log(model['output'])), name = 'cce')
+			model['scce'] = tf.scalar_summary(model['cce'].name, model['cce'])
 
 	model['gsms'] = tf.Variable(0, trainable = False, name = 'gsms')
 	model['lrms'] = tf.train.exponential_decay(lrate_ms, model['gsms'], dstep_ms, drate_ms, staircase = False, name = 'lrms')
