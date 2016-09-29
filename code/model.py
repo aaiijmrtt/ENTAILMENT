@@ -1,5 +1,5 @@
 import sys, configparser
-import baseline, attention
+import baseline, bidirectional, attention
 import tensorflow as tf
 
 if __name__ == '__main__':

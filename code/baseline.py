@@ -47,7 +47,7 @@ def create(model, config):
 				model['pWc_%i' %i] = tf.Variable(tf.truncated_normal([dim_i, dim_i], stddev = 1.0 / dim_i), name = 'pWc_' + str(i))
 				model['pBc_%i' %i] = tf.Variable(tf.truncated_normal([1, dim_i], stddev = 1.0 / dim_i), name = 'pBc_' + str(i))
 				for ii in xrange(dim_t):
-					model['pcc_%i_%i' %(i, ii)] = tf.Variable(tf.truncated_normal([1, dim_i], stddev = 1.0 / dim_i), name = 'pcc_%i_%i' %(i, ii)) if ii == 0 else model['pc_%i_%i' %(i, ii - 1)] # consider starting with all zeros
+					model['pcc_%i_%i' %(i, ii)] = tf.Variable(tf.truncated_normal([dim_b, dim_i], stddev = 1.0 / dim_i), name = 'pcc_%i_%i' %(i, ii)) if ii == 0 else model['pc_%i_%i' %(i, ii - 1)] # consider starting with all zeros
 					model['pc_%i_%i' %(i, ii)] = tf.add(tf.mul(model['pf_%i_%i' %(i, ii)], model['pcc_%i_%i' %(i, ii)]), tf.mul(model['pi_%i_%i' %(i, ii)], tf.nn.tanh(tf.add(tf.matmul(model['px_%i_%i' %(i, ii)], model['pWc_%i' %i]), model['pBc_%i' %i]))), name = 'pc_%i_%i' %(i, ii))
 
 			with tf.name_scope('hidden_%i' %i):
@@ -108,7 +108,7 @@ def create(model, config):
 				model['hWc_%i' %i] = tf.Variable(tf.truncated_normal([dim_i, dim_i], stddev = 1.0 / dim_i), name = 'hWc_' + str(i))
 				model['hBc_%i' %i] = tf.Variable(tf.truncated_normal([1, dim_i], stddev = 1.0 / dim_i), name = 'hBc_' + str(i))
 				for ii in xrange(dim_t):
-					model['hcc_%i_%i' %(i, ii)] = tf.Variable(tf.truncated_normal([1, dim_i], stddev = 1.0 / dim_i), name = 'hcc_%i_%i' %(i, ii)) if ii == 0 else model['hc_%i_%i' %(i, ii - 1)] # consider starting with all zeros
+					model['hcc_%i_%i' %(i, ii)] = tf.Variable(tf.truncated_normal([dim_b, dim_i], stddev = 1.0 / dim_i), name = 'hcc_%i_%i' %(i, ii)) if ii == 0 else model['hc_%i_%i' %(i, ii - 1)] # consider starting with all zeros
 					model['hc_%i_%i' %(i, ii)] = tf.add(tf.mul(model['hf_%i_%i' %(i, ii)], model['hcc_%i_%i' %(i, ii)]), tf.mul(model['hi_%i_%i' %(i, ii)], tf.nn.tanh(tf.add(tf.matmul(model['hx_%i_%i' %(i, ii)], model['hWc_%i' %i]), model['hBc_%i' %i]))), name = 'hc_%i_%i' %(i, ii))
 
 			with tf.name_scope('hidden_%i' %i):
