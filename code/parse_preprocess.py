@@ -58,17 +58,17 @@ def main():
 	else:
 		if 'train' in args.split:
 			SNLI = parse_json(train_file)
-			filename = 	'snli_processed_train.txt'
+			filename = 'snli_processed_train.txt'
 			write_file(filename, SNLI)
 
 		if 'dev' in args.split:
 			SNLI = parse_json(dev_file)
-			filename = 	'snli_processed_dev.txt'
+			filename = 'snli_processed_dev.txt'
 			write_file(filename, SNLI)
     
 		if 'test' in args.split:
-			SNLI = parse_json(train_file)
-			filename = 	'snli_processed_test.txt'
+			SNLI = parse_json(test_file)
+			filename = 'snli_processed_test.txt'
 			write_file(filename, SNLI)
 
 if __name__ == '__main__':
