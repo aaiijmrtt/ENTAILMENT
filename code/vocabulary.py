@@ -49,10 +49,9 @@ def main():
 	processed_data_path = os.path.abspath('../code/data')
 	parser = argparse.ArgumentParser(description = 'Build vocabulary of preprocessed files')
 	parser.add_argument('-d', '--dir', action = 'store', default = processed_data_path, 
-						type = str, help = 'Root directory of preprocessed splits')
+			    type = str, help = 'Root directory of preprocessed splits')
 	args = parser.parse_args()
 
-	dir_path = args.dir
 	vocab = count(os.path.join(args.dir, 'snli_processed_dev.txt'))
 	print datetime.datetime.now(), 'Read dev'
 	vocab = count(os.path.join(args.dir, 'snli_processed_test.txt'), vocab)
@@ -61,13 +60,13 @@ def main():
 	print datetime.datetime.now(), 'Read train'
 	vocab = map(lambda x: x[0], sorted(vocab.items(), key = lambda x: x[1], reverse = True))
 	writetofile(os.path.join(args.dir, 'snli_processed_dev.txt'), 
-				os.path.join(args.dir, 'snli_mapped_dev.txt'), vocab)
+		    os.path.join(args.dir, 'snli_mapped_dev.txt'), vocab)
 	print datetime.datetime.now(), 'Write dev'
 	writetofile(os.path.join(args.dir, 'snli_processed_test.txt'), 
-				os.path.join(args.dir, 'snli_mapped_test.txt'), vocab)
+		    os.path.join(args.dir, 'snli_mapped_test.txt'), vocab)
 	print datetime.datetime.now(), 'Write test'
 	writetofile(os.path.join(args.dir, 'snli_processed_train.txt'), 
-				os.path.join(args.dir, 'snli_mapped_train.txt'), vocab)
+		    os.path.join(args.dir, 'snli_mapped_train.txt'), vocab)
 	print datetime.datetime.now(), 'Write train'
 
 if __name__ == '__main__':
