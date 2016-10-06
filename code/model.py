@@ -25,13 +25,20 @@ def feed(model, config, filename):
 			llist, plist, hlist = list(), list(), list()
 
 def run(model, config, session, summary, filename, train):
-	iters, freq = config.getint('global', 'iterations') if train else 1, config.getint('global', 'frequency')
+	iters, freq, total = config.getint('global', 'iterations') if train else 1, config.getint('global', 'frequency'), 0.
 	for i in xrange(iters):
 		for ii, feeddict in enumerate(feed(model, config, filename)):
-			if run: session.run(model['tce'], feed_dict = feeddict)
-			if ii % freq == 0 or not run:
-				summ = session.run(model['scce'], feed_dict = feeddict)
-				summary.add_summary(summ, model['gsce'].eval())
+			if train:
+				val, t = session.run([model['cce'], model['tce']], feed_dict = feeddict)
+				total += val
+				if (ii + 1) % freq == 0:
+					summ = session.run(model['scce'], feed_dict = feeddict)
+					summary.add_summary(summ, model['gsce'].eval())
+					print datetime.datetime.now(), i, ii, total
+			else:
+				val = session.run(model['output'], feed_dict = feeddict)
+				total += len(filter(lambda pair: pair[0] == pair[1], zip(np.argmax(val, 1), np.argmax(feeddict[model['clabel']], 1))))
+	return total
 
 if __name__ == '__main__':
 	config = configparser.ConfigParser(interpolation = configparser.ExtendedInterpolation())
@@ -44,7 +51,7 @@ if __name__ == '__main__':
 		sess.run(tf.initialize_all_variables())
 		summary = tf.train.SummaryWriter(config.get('global', 'logs'), sess.graph)
 
-		run(model, config, sess, summary, sys.argv[2], True)
-		run(model, config, sess, summary, sys.argv[3], False)
+		print datetime.datetime.now(), run(model, config, sess, summary, sys.argv[2], True)
+		print datetime.datetime.now(), run(model, config, sess, summary, sys.argv[3], False)
 
 		tf.train.Saver().save(sess, config.get('global', 'path'))
