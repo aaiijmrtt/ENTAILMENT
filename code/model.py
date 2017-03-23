@@ -48,8 +48,8 @@ if __name__ == '__main__':
 	model = globals()[modeltype].create(model, config[modeltype])
 
 	with tf.Session() as sess:
-		sess.run(tf.initialize_all_variables())
-		summary = tf.train.SummaryWriter(config.get('global', 'logs'), sess.graph)
+		sess.run(tf.global_variables_initializer())
+		summary = tf.summary.FileWriter(config.get('global', 'logs'), sess.graph)
 
 		print datetime.datetime.now(), run(model, config, sess, summary, sys.argv[2], True)
 		print datetime.datetime.now(), run(model, config, sess, summary, sys.argv[3], False)

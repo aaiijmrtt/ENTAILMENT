@@ -48,7 +48,7 @@ def create(model, config):
 				model['pBc_%i' %i] = tf.Variable(tf.truncated_normal([1, dim_i], stddev = 1.0 / dim_i), name = 'pBc_' + str(i))
 				for ii in xrange(dim_t):
 					model['pcc_%i_%i' %(i, ii)] = tf.Variable(tf.truncated_normal([dim_b, dim_i], stddev = 1.0 / dim_i), name = 'pcc_%i_%i' %(i, ii)) if ii == 0 else model['pc_%i_%i' %(i, ii - 1)] # consider starting with all zeros
-					model['pc_%i_%i' %(i, ii)] = tf.add(tf.mul(model['pf_%i_%i' %(i, ii)], model['pcc_%i_%i' %(i, ii)]), tf.mul(model['pi_%i_%i' %(i, ii)], tf.nn.tanh(tf.add(tf.matmul(model['px_%i_%i' %(i, ii)], model['pWc_%i' %i]), model['pBc_%i' %i]))), name = 'pc_%i_%i' %(i, ii))
+					model['pc_%i_%i' %(i, ii)] = tf.add(tf.multiply(model['pf_%i_%i' %(i, ii)], model['pcc_%i_%i' %(i, ii)]), tf.multiply(model['pi_%i_%i' %(i, ii)], tf.nn.tanh(tf.add(tf.matmul(model['px_%i_%i' %(i, ii)], model['pWc_%i' %i]), model['pBc_%i' %i]))), name = 'pc_%i_%i' %(i, ii))
 
 			with tf.name_scope('hidden_%i' %i):
 				model['pWz_%i' %i] = tf.Variable(tf.truncated_normal([dim_i, dim_i], stddev = 1.0 / dim_i), name = 'pWz_%i' %i)
@@ -58,7 +58,7 @@ def create(model, config):
 
 			with tf.name_scope('output_%i' %i):
 				for ii in xrange(dim_t):
-					model['ph_%i_%i' %(i, ii)] = tf.mul(model['po_%i_%i' %(i, ii)], tf.nn.tanh(model['pz_%i_%i' %(i, ii)]), name = 'ph_%i_%i' %(i, ii))
+					model['ph_%i_%i' %(i, ii)] = tf.multiply(model['po_%i_%i' %(i, ii)], tf.nn.tanh(model['pz_%i_%i' %(i, ii)]), name = 'ph_%i_%i' %(i, ii))
 
 		with tf.name_scope('output'):
 			for ii in xrange(dim_t):
@@ -66,9 +66,9 @@ def create(model, config):
 
 		with tf.name_scope('meansquared'):
 			for ii in xrange(dim_t):
-				model['pms_%i' %ii] = tf.select(tf.equal(model['pxi_%i' %ii], tf.zeros([dim_b], tf.int32)), tf.zeros([dim_b], tf.float32), tf.reduce_sum(tf.square(tf.sub(model['py_%i' %ii], model['ph_%i' %ii])), [1]), name = 'pms_%i' %ii)
+				model['pms_%i' %ii] = tf.where(tf.equal(model['pxi_%i' %ii], tf.zeros([dim_b], tf.int32)), tf.zeros([dim_b], tf.float32), tf.reduce_sum(tf.square(tf.subtract(model['py_%i' %ii], model['ph_%i' %ii])), [1]), name = 'pms_%i' %ii)
 			model['pms'] = tf.reduce_sum(tf.add_n([model['pms_%i' %ii] for ii in xrange(dim_t)]), name = 'pms')
-			model['spms'] = tf.scalar_summary(model['pms'].name, model['pms'])
+			model['spms'] = tf.summary.scalar(model['pms'].name, model['pms'])
 
 	with tf.name_scope('hlstm'):
 		with tf.name_scope('input'):
@@ -109,7 +109,7 @@ def create(model, config):
 				model['hBc_%i' %i] = tf.Variable(tf.truncated_normal([1, dim_i], stddev = 1.0 / dim_i), name = 'hBc_' + str(i))
 				for ii in xrange(dim_t):
 					model['hcc_%i_%i' %(i, ii)] = tf.Variable(tf.truncated_normal([dim_b, dim_i], stddev = 1.0 / dim_i), name = 'hcc_%i_%i' %(i, ii)) if ii == 0 else model['hc_%i_%i' %(i, ii - 1)] # consider starting with all zeros
-					model['hc_%i_%i' %(i, ii)] = tf.add(tf.mul(model['hf_%i_%i' %(i, ii)], model['hcc_%i_%i' %(i, ii)]), tf.mul(model['hi_%i_%i' %(i, ii)], tf.nn.tanh(tf.add(tf.matmul(model['hx_%i_%i' %(i, ii)], model['hWc_%i' %i]), model['hBc_%i' %i]))), name = 'hc_%i_%i' %(i, ii))
+					model['hc_%i_%i' %(i, ii)] = tf.add(tf.multiply(model['hf_%i_%i' %(i, ii)], model['hcc_%i_%i' %(i, ii)]), tf.multiply(model['hi_%i_%i' %(i, ii)], tf.nn.tanh(tf.add(tf.matmul(model['hx_%i_%i' %(i, ii)], model['hWc_%i' %i]), model['hBc_%i' %i]))), name = 'hc_%i_%i' %(i, ii))
 
 			with tf.name_scope('hidden_%i' %i):
 				model['hWz_%i' %i] = tf.Variable(tf.truncated_normal([dim_i, dim_i], stddev = 1.0 / dim_i), name = 'hWz_%i' %i)
@@ -119,7 +119,7 @@ def create(model, config):
 
 			with tf.name_scope('output_%i' %i):
 				for ii in xrange(dim_t):
-					model['hh_%i_%i' %(i, ii)] = tf.mul(model['ho_%i_%i' %(i, ii)], tf.nn.tanh(model['hz_%i_%i' %(i, ii)]), name = 'hh_%i_%i' %(i, ii))
+					model['hh_%i_%i' %(i, ii)] = tf.multiply(model['ho_%i_%i' %(i, ii)], tf.nn.tanh(model['hz_%i_%i' %(i, ii)]), name = 'hh_%i_%i' %(i, ii))
 
 		with tf.name_scope('output'):
 			for ii in xrange(dim_t):
@@ -127,9 +127,9 @@ def create(model, config):
 
 		with tf.name_scope('meansquared'):
 			for ii in xrange(dim_t):
-				model['hms_%i' %ii] = tf.select(tf.equal(model['hxi_%i' %ii], tf.zeros([dim_b], tf.int32)), tf.zeros([dim_b], tf.float32), tf.reduce_sum(tf.square(tf.sub(model['hy_%i' %ii], model['hh_%i' %ii])), [1]), name = 'hms_%i' %ii)
+				model['hms_%i' %ii] = tf.where(tf.equal(model['hxi_%i' %ii], tf.zeros([dim_b], tf.int32)), tf.zeros([dim_b], tf.float32), tf.reduce_sum(tf.square(tf.subtract(model['hy_%i' %ii], model['hh_%i' %ii])), [1]), name = 'hms_%i' %ii)
 			model['hms'] = tf.reduce_sum(tf.add_n([model['hms_%i' %ii] for ii in xrange(dim_t)]), name = 'hms')
-			model['shms'] = tf.scalar_summary(model['hms'].name, model['hms'])
+			model['shms'] = tf.summary.scalar(model['hms'].name, model['hms'])
 
 	with tf.name_scope('classification'):
 		with tf.name_scope('label'):
@@ -139,15 +139,15 @@ def create(model, config):
 			with tf.name_scope('layer_%i' %i):
 				model['cW_%i' %i] = tf.Variable(tf.truncated_normal([2 * dim_i, 2 * dim_i], stddev = 0.5 / dim_i), name = 'cW_%i' %i) if i != dim_n - 1 else tf.Variable(tf.truncated_normal([2 * dim_i, dim_c], stddev = 1.0 / dim_c), name = 'cW_%i' %i)
 				model['cB_%i' %i] = tf.Variable(tf.truncated_normal([1, 2 * dim_i], stddev = 0.5 / dim_i), name = 'cB_%i' %i) if i != dim_n - 1 else tf.Variable(tf.truncated_normal([1, dim_c], stddev = 1.0 / dim_c), name = 'cB_%i' %i)
-				model['cx_%i' %i] = tf.concat(1, [model['ph_%i' %(dim_t - 1)], model['hh_%i' %(dim_t - 1)]], name = 'cx_%i' %i) if i == 0 else model['cy_%i' %(i - 1)]
+				model['cx_%i' %i] = tf.concat(axis=1, values=[model['ph_%i' %(dim_t - 1)], model['hh_%i' %(dim_t - 1)]], name = 'cx_%i' %i) if i == 0 else model['cy_%i' %(i - 1)]
 				model['cy_%i' %i] = tf.add(tf.matmul(model['cx_%i' %i], model['cW_%i' %i]), model['cB_%i' %i], name = 'cy_%i' %i)
 
 		with tf.name_scope('output'):
 			model['output'] = tf.nn.softmax(model['cy_%i' %(dim_n - 1)], name = 'output')
 
 		with tf.name_scope('crossentropy'):
-			model['cce'] = tf.reduce_sum(-tf.mul(model['clabel'], tf.log(model['output'])), name = 'cce')
-			model['scce'] = tf.scalar_summary(model['cce'].name, model['cce'])
+			model['cce'] = tf.reduce_sum(-tf.multiply(model['clabel'], tf.log(model['output'])), name = 'cce')
+			model['scce'] = tf.summary.scalar(model['cce'].name, model['cce'])
 
 	model['gsms'] = tf.Variable(0, trainable = False, name = 'gsms')
 	model['lrms'] = tf.train.exponential_decay(lrate_ms, model['gsms'], dstep_ms, drate_ms, staircase = False, name = 'lrms')
