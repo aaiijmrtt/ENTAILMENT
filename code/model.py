@@ -1,6 +1,6 @@
-import sys, configparser, datetime
+import sys, configparser, datetime, signal, os
 import baseline, bidirectional, attention
-import tensorflow as tf
+import tensorflow as tf, numpy as np
 
 def prepad(unpadded, pad, size):
 	if len(unpadded) == size:
@@ -26,6 +26,7 @@ def feed(model, config, filename):
 
 def run(model, config, session, summary, filename, train):
 	iters, freq, total = config.getint('global', 'iterations') if train else 1, config.getint('global', 'frequency'), 0.
+	tf.train.Saver().restore(sess, config.get('global', 'path')) # restore existing model
 	for i in xrange(iters):
 		for ii, feeddict in enumerate(feed(model, config, filename)):
 			if train:
@@ -40,6 +41,11 @@ def run(model, config, session, summary, filename, train):
 				total += len(filter(lambda pair: pair[0] == pair[1], zip(np.argmax(val, 1), np.argmax(feeddict[model['clabel']], 1))))
 	return total
 
+def handler(signum, stack):
+	print datetime.datetime.now(), 'saving model prematurely' # save model on keyboard interrupt
+	tf.train.Saver().save(sess, config.get('global', 'path'))
+	sys.exit()
+
 if __name__ == '__main__':
 	config = configparser.ConfigParser(interpolation = configparser.ExtendedInterpolation())
 	config.read(sys.argv[1])
@@ -48,10 +54,15 @@ if __name__ == '__main__':
 	model = globals()[modeltype].create(model, config[modeltype])
 
 	with tf.Session() as sess:
+		signal.signal(signal.SIGINT, handler)
 		sess.run(tf.global_variables_initializer())
 		summary = tf.summary.FileWriter(config.get('global', 'logs'), sess.graph)
 
-		print datetime.datetime.now(), run(model, config, sess, summary, sys.argv[2], True)
-		print datetime.datetime.now(), run(model, config, sess, summary, sys.argv[3], False)
-
+		if sys.argv[2] == 'train':
+			print datetime.datetime.now(), run(model, config, sess, summary, sys.argv[3], True) # train
+		elif sys.argv[2] == 'test':
+			print datetime.datetime.now(), run(model, config, sess, summary, sys.argv[3], False) # test
+		else:
+			print 'Invalid argument'
+			sys.exit()
 		tf.train.Saver().save(sess, config.get('global', 'path'))
