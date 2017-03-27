@@ -60,10 +60,10 @@ def create(model, config):
 				model['pBBc_%i' %i] = tf.Variable(tf.truncated_normal([1, dim_i], stddev = 1.0 / dim_i), name = 'pBBc_' + str(i))
 				for ii in xrange(dim_t):
 					model['pFcc_%i_%i' %(i, ii)] = tf.Variable(tf.truncated_normal([dim_b, dim_i], stddev = 1.0 / dim_i), name = 'pFcc_%i_%i' %(i, ii)) if ii == 0 else model['pFc_%i_%i' %(i, ii - 1)] # consider starting with all zeros
-					model['pFc_%i_%i' %(i, ii)] = tf.select(tf.equal(model['pxi_%i' %ii], tf.zeros([dim_b], tf.int32)), model['pFcc_%i_%i' %(i, ii)], tf.add(tf.mul(model['pFf_%i_%i' %(i, ii)], model['pFcc_%i_%i' %(i, ii)]), tf.mul(model['pFi_%i_%i' %(i, ii)], tf.nn.tanh(tf.add(tf.matmul(model['pFx_%i_%i' %(i, ii)], model['pFWc_%i' %i]), model['pFBc_%i' %i])))), name = 'pFc_%i_%i' %(i, ii))
+					model['pFc_%i_%i' %(i, ii)] = tf.where(tf.equal(model['pxi_%i' %ii], tf.zeros([dim_b], tf.int32)), model['pFcc_%i_%i' %(i, ii)], tf.add(tf.multiply(model['pFf_%i_%i' %(i, ii)], model['pFcc_%i_%i' %(i, ii)]), tf.multiply(model['pFi_%i_%i' %(i, ii)], tf.nn.tanh(tf.add(tf.matmul(model['pFx_%i_%i' %(i, ii)], model['pFWc_%i' %i]), model['pFBc_%i' %i])))), name = 'pFc_%i_%i' %(i, ii))
 				for ii in reversed(xrange(dim_t)):
 					model['pBcc_%i_%i' %(i, ii)] = tf.Variable(tf.truncated_normal([dim_b, dim_i], stddev = 1.0 / dim_i), name = 'pBcc_%i_%i' %(i, ii)) if ii == dim_t - 1 else model['pBc_%i_%i' %(i, ii + 1)] # consider starting with all zeros
-					model['pBc_%i_%i' %(i, ii)] = tf.select(tf.equal(model['pxi_%i' %ii], tf.zeros([dim_b], tf.int32)), model['pBcc_%i_%i' %(i, ii)], tf.add(tf.mul(model['pBf_%i_%i' %(i, ii)], model['pBcc_%i_%i' %(i, ii)]), tf.mul(model['pBi_%i_%i' %(i, ii)], tf.nn.tanh(tf.add(tf.matmul(model['pBx_%i_%i' %(i, ii)], model['pBWc_%i' %i]), model['pBBc_%i' %i])))), name = 'pBc_%i_%i' %(i, ii))
+					model['pBc_%i_%i' %(i, ii)] = tf.where(tf.equal(model['pxi_%i' %ii], tf.zeros([dim_b], tf.int32)), model['pBcc_%i_%i' %(i, ii)], tf.add(tf.multiply(model['pBf_%i_%i' %(i, ii)], model['pBcc_%i_%i' %(i, ii)]), tf.multiply(model['pBi_%i_%i' %(i, ii)], tf.nn.tanh(tf.add(tf.matmul(model['pBx_%i_%i' %(i, ii)], model['pBWc_%i' %i]), model['pBBc_%i' %i])))), name = 'pBc_%i_%i' %(i, ii))
 
 			with tf.name_scope('hidden_%i' %i):
 				model['pFWz_%i' %i] = tf.Variable(tf.truncated_normal([dim_i, dim_i], stddev = 1.0 / dim_i), name = 'pFWz_%i' %i)
@@ -76,25 +76,25 @@ def create(model, config):
 
 			with tf.name_scope('output_%i' %i):
 				for ii in xrange(dim_t):
-					model['pFh_%i_%i' %(i, ii)] = tf.mul(model['pFo_%i_%i' %(i, ii)], tf.nn.tanh(model['pFz_%i_%i' %(i, ii)]), name = 'pFh_%i_%i' %(i, ii))
-					model['pBh_%i_%i' %(i, ii)] = tf.mul(model['pBo_%i_%i' %(i, ii)], tf.nn.tanh(model['pBz_%i_%i' %(i, ii)]), name = 'pBh_%i_%i' %(i, ii))
+					model['pFh_%i_%i' %(i, ii)] = tf.multiply(model['pFo_%i_%i' %(i, ii)], tf.nn.tanh(model['pFz_%i_%i' %(i, ii)]), name = 'pFh_%i_%i' %(i, ii))
+					model['pBh_%i_%i' %(i, ii)] = tf.multiply(model['pBo_%i_%i' %(i, ii)], tf.nn.tanh(model['pBz_%i_%i' %(i, ii)]), name = 'pBh_%i_%i' %(i, ii))
 				model['pFh_%i_%i' %(dim_d - 1, -1)] = tf.zeros([dim_b, dim_i], tf.float32)
 				model['pBh_%i_%i' %(dim_d - 1, dim_t)] = tf.zeros([dim_b, dim_i], tf.float32)
 
 		with tf.name_scope('output'):
 			for ii in xrange(dim_t):
-				model['pFh_%i' %ii] = tf.select(tf.equal(model['pxi_%i' %ii], tf.zeros([dim_b], tf.int32)), model['pFh_%i_%i' %(dim_d - 1, ii - 1)], model['pFh_%i_%i' %(dim_d - 1, ii)], name = 'pFh_%i' %ii)
-				model['pBh_%i' %ii] = tf.select(tf.equal(model['pxi_%i' %ii], tf.zeros([dim_b], tf.int32)), model['pBh_%i_%i' %(dim_d - 1, ii + 1)], model['pBh_%i_%i' %(dim_d - 1, ii)], name = 'pBh_%i' %ii)
+				model['pFh_%i' %ii] = tf.where(tf.equal(model['pxi_%i' %ii], tf.zeros([dim_b], tf.int32)), model['pFh_%i_%i' %(dim_d - 1, ii - 1)], model['pFh_%i_%i' %(dim_d - 1, ii)], name = 'pFh_%i' %ii)
+				model['pBh_%i' %ii] = tf.where(tf.equal(model['pxi_%i' %ii], tf.zeros([dim_b], tf.int32)), model['pBh_%i_%i' %(dim_d - 1, ii + 1)], model['pBh_%i_%i' %(dim_d - 1, ii)], name = 'pBh_%i' %ii)
 
 		with tf.name_scope('meansquared'):
 			for ii in xrange(dim_t):
-				model['pFms_%i' %ii] = tf.select(tf.equal(model['pxi_%i' %ii], tf.zeros([dim_b], tf.int32)), tf.zeros([dim_b], tf.float32), tf.reduce_sum(tf.square(tf.sub(model['py_%i' %ii], model['pFh_%i' %ii])), [1]), name = 'pFms_%i' %ii)
+				model['pFms_%i' %ii] = tf.where(tf.equal(model['pxi_%i' %ii], tf.zeros([dim_b], tf.int32)), tf.zeros([dim_b], tf.float32), tf.reduce_sum(tf.square(tf.subtract(model['py_%i' %ii], model['pFh_%i' %ii])), [1]), name = 'pFms_%i' %ii)
 			model['pFms'] = tf.reduce_sum(tf.add_n([model['pFms_%i' %ii] for ii in xrange(dim_t)]), name = 'pFms')
-			model['sp+ms'] = tf.scalar_summary(model['pFms'].name, model['pFms'])
+			model['sp+ms'] = tf.summary.scalar(model['pFms'].name, model['pFms'])
 			for ii in xrange(dim_t):
-				model['pBms_%i' %ii] = tf.select(tf.equal(model['pxi_%i' %ii], tf.zeros([dim_b], tf.int32)), tf.zeros([dim_b], tf.float32), tf.reduce_sum(tf.square(tf.sub(model['py_%i' %ii], model['pBh_%i' %ii])), [1]), name = 'pBms_%i' %ii)
+				model['pBms_%i' %ii] = tf.where(tf.equal(model['pxi_%i' %ii], tf.zeros([dim_b], tf.int32)), tf.zeros([dim_b], tf.float32), tf.reduce_sum(tf.square(tf.subtract(model['py_%i' %ii], model['pBh_%i' %ii])), [1]), name = 'pBms_%i' %ii)
 			model['pBms'] = tf.reduce_sum(tf.add_n([model['pBms_%i' %ii] for ii in xrange(dim_t)]), name = 'pBms')
-			model['sp-ms'] = tf.scalar_summary(model['pBms'].name, model['pBms'])
+			model['sp-ms'] = tf.summary.scalar(model['pBms'].name, model['pBms'])
 
 	with tf.name_scope('hlstm'):
 		with tf.name_scope('input'):
@@ -147,10 +147,10 @@ def create(model, config):
 				model['hBBc_%i' %i] = tf.Variable(tf.truncated_normal([1, dim_i], stddev = 1.0 / dim_i), name = 'hBBc_' + str(i))
 				for ii in xrange(dim_t):
 					model['hFcc_%i_%i' %(i, ii)] = tf.Variable(tf.truncated_normal([dim_b, dim_i], stddev = 1.0 / dim_i), name = 'hFcc_%i_%i' %(i, ii)) if ii == 0 else model['hFc_%i_%i' %(i, ii - 1)] # consider starting with all zeros
-					model['hFc_%i_%i' %(i, ii)] = tf.select(tf.equal(model['hxi_%i' %ii], tf.zeros([dim_b], tf.int32)), model['hFcc_%i_%i' %(i, ii)], tf.add(tf.mul(model['hFf_%i_%i' %(i, ii)], model['hFcc_%i_%i' %(i, ii)]), tf.mul(model['hFi_%i_%i' %(i, ii)], tf.nn.tanh(tf.add(tf.matmul(model['hFx_%i_%i' %(i, ii)], model['hFWc_%i' %i]), model['hFBc_%i' %i])))), name = 'hFc_%i_%i' %(i, ii))
+					model['hFc_%i_%i' %(i, ii)] = tf.where(tf.equal(model['hxi_%i' %ii], tf.zeros([dim_b], tf.int32)), model['hFcc_%i_%i' %(i, ii)], tf.add(tf.multiply(model['hFf_%i_%i' %(i, ii)], model['hFcc_%i_%i' %(i, ii)]), tf.multiply(model['hFi_%i_%i' %(i, ii)], tf.nn.tanh(tf.add(tf.matmul(model['hFx_%i_%i' %(i, ii)], model['hFWc_%i' %i]), model['hFBc_%i' %i])))), name = 'hFc_%i_%i' %(i, ii))
 				for ii in reversed(xrange(dim_t)):
 					model['hBcc_%i_%i' %(i, ii)] = tf.Variable(tf.truncated_normal([dim_b, dim_i], stddev = 1.0 / dim_i), name = 'hBcc_%i_%i' %(i, ii)) if ii == dim_t - 1 else model['hBc_%i_%i' %(i, ii + 1)] # consider starting with all zeros
-					model['hBc_%i_%i' %(i, ii)] = tf.select(tf.equal(model['hxi_%i' %ii], tf.zeros([dim_b], tf.int32)), model['hBcc_%i_%i' %(i, ii)], tf.add(tf.mul(model['hBf_%i_%i' %(i, ii)], model['hBcc_%i_%i' %(i, ii)]), tf.mul(model['hBi_%i_%i' %(i, ii)], tf.nn.tanh(tf.add(tf.matmul(model['hBx_%i_%i' %(i, ii)], model['hBWc_%i' %i]), model['hBBc_%i' %i])))), name = 'hBc_%i_%i' %(i, ii))
+					model['hBc_%i_%i' %(i, ii)] = tf.where(tf.equal(model['hxi_%i' %ii], tf.zeros([dim_b], tf.int32)), model['hBcc_%i_%i' %(i, ii)], tf.add(tf.multiply(model['hBf_%i_%i' %(i, ii)], model['hBcc_%i_%i' %(i, ii)]), tf.multiply(model['hBi_%i_%i' %(i, ii)], tf.nn.tanh(tf.add(tf.matmul(model['hBx_%i_%i' %(i, ii)], model['hBWc_%i' %i]), model['hBBc_%i' %i])))), name = 'hBc_%i_%i' %(i, ii))
 
 			with tf.name_scope('hidden_%i' %i):
 				model['hFWz_%i' %i] = tf.Variable(tf.truncated_normal([dim_i, dim_i], stddev = 1.0 / dim_i), name = 'hFWz_%i' %i)
@@ -163,25 +163,25 @@ def create(model, config):
 
 			with tf.name_scope('output_%i' %i):
 				for ii in xrange(dim_t):
-					model['hFh_%i_%i' %(i, ii)] = tf.mul(model['hFo_%i_%i' %(i, ii)], tf.nn.tanh(model['hFz_%i_%i' %(i, ii)]), name = 'hFh_%i_%i' %(i, ii))
-					model['hBh_%i_%i' %(i, ii)] = tf.mul(model['hBo_%i_%i' %(i, ii)], tf.nn.tanh(model['hBz_%i_%i' %(i, ii)]), name = 'hBh_%i_%i' %(i, ii))
+					model['hFh_%i_%i' %(i, ii)] = tf.multiply(model['hFo_%i_%i' %(i, ii)], tf.nn.tanh(model['hFz_%i_%i' %(i, ii)]), name = 'hFh_%i_%i' %(i, ii))
+					model['hBh_%i_%i' %(i, ii)] = tf.multiply(model['hBo_%i_%i' %(i, ii)], tf.nn.tanh(model['hBz_%i_%i' %(i, ii)]), name = 'hBh_%i_%i' %(i, ii))
 				model['hFh_%i_%i' %(dim_d - 1, -1)] = tf.zeros([dim_b, dim_i], tf.float32)
 				model['hBh_%i_%i' %(dim_d - 1, dim_t)] = tf.zeros([dim_b, dim_i], tf.float32)
 
 		with tf.name_scope('output'):
 			for ii in xrange(dim_t):
-				model['hFh_%i' %ii] = tf.select(tf.equal(model['hxi_%i' %ii], tf.zeros([dim_b], tf.int32)), model['hFh_%i_%i' %(dim_d - 1, ii - 1)], model['hFh_%i_%i' %(dim_d - 1, ii)], name = 'hFh_%i' %ii)
-				model['hBh_%i' %ii] = tf.select(tf.equal(model['hxi_%i' %ii], tf.zeros([dim_b], tf.int32)), model['hBh_%i_%i' %(dim_d - 1, ii + 1)], model['hBh_%i_%i' %(dim_d - 1, ii)], name = 'hBh_%i' %ii)
+				model['hFh_%i' %ii] = tf.where(tf.equal(model['hxi_%i' %ii], tf.zeros([dim_b], tf.int32)), model['hFh_%i_%i' %(dim_d - 1, ii - 1)], model['hFh_%i_%i' %(dim_d - 1, ii)], name = 'hFh_%i' %ii)
+				model['hBh_%i' %ii] = tf.where(tf.equal(model['hxi_%i' %ii], tf.zeros([dim_b], tf.int32)), model['hBh_%i_%i' %(dim_d - 1, ii + 1)], model['hBh_%i_%i' %(dim_d - 1, ii)], name = 'hBh_%i' %ii)
 
 		with tf.name_scope('meansquared'):
 			for ii in xrange(dim_t):
-				model['hFms_%i' %ii] = tf.select(tf.equal(model['hxi_%i' %ii], tf.zeros([dim_b], tf.int32)), tf.zeros([dim_b], tf.float32), tf.reduce_sum(tf.square(tf.sub(model['hy_%i' %ii], model['hFh_%i' %ii])), [1]), name = 'hFms_%i' %ii)
+				model['hFms_%i' %ii] = tf.where(tf.equal(model['hxi_%i' %ii], tf.zeros([dim_b], tf.int32)), tf.zeros([dim_b], tf.float32), tf.reduce_sum(tf.square(tf.subtract(model['hy_%i' %ii], model['hFh_%i' %ii])), [1]), name = 'hFms_%i' %ii)
 			model['hFms'] = tf.reduce_sum(tf.add_n([model['hFms_%i' %ii] for ii in xrange(dim_t)]), name = 'hFms')
-			model['sh+ms'] = tf.scalar_summary(model['hFms'].name, model['hFms'])
+			model['sh+ms'] = tf.summary.scalar(model['hFms'].name, model['hFms'])
 			for ii in xrange(dim_t):
-				model['hBms_%i' %ii] = tf.select(tf.equal(model['hxi_%i' %ii], tf.zeros([dim_b], tf.int32)), tf.zeros([dim_b], tf.float32), tf.reduce_sum(tf.square(tf.sub(model['hy_%i' %ii], model['hBh_%i' %ii])), [1]), name = 'hBms_%i' %ii)
+				model['hBms_%i' %ii] = tf.where(tf.equal(model['hxi_%i' %ii], tf.zeros([dim_b], tf.int32)), tf.zeros([dim_b], tf.float32), tf.reduce_sum(tf.square(tf.subtract(model['hy_%i' %ii], model['hBh_%i' %ii])), [1]), name = 'hBms_%i' %ii)
 			model['hBms'] = tf.reduce_sum(tf.add_n([model['hBms_%i' %ii] for ii in xrange(dim_t)]), name = 'hBms')
-			model['sh-ms'] = tf.scalar_summary(model['hBms'].name, model['hBms'])
+			model['sh-ms'] = tf.summary.scalar(model['hBms'].name, model['hBms'])
 
 	with tf.name_scope('classification'):
 		with tf.name_scope('label'):
@@ -191,15 +191,15 @@ def create(model, config):
 			with tf.name_scope('layer_%i' %i):
 				model['cW_%i' %i] = tf.Variable(tf.truncated_normal([4 * dim_i, 4 * dim_i], stddev = 0.25 / dim_i), name = 'cW_%i' %i) if i != dim_n - 1 else tf.Variable(tf.truncated_normal([4 * dim_i, dim_c], stddev = 1.0 / dim_c), name = 'cW_%i' %i)
 				model['cB_%i' %i] = tf.Variable(tf.truncated_normal([1, 4 * dim_i], stddev = 0.25 / dim_i), name = 'cB_%i' %i) if i != dim_n - 1 else tf.Variable(tf.truncated_normal([1, dim_c], stddev = 1.0 / dim_c), name = 'cB_%i' %i)
-				model['cx_%i' %i] = tf.concat(1, [model['pFh_%i' %(dim_t - 1)], model['pBh_%i' %(0)], model['hFh_%i' %(dim_t - 1)], model['hBh_%i' %(0)]], name = 'cx_%i' %i) if i == 0 else model['cy_%i' %(i - 1)]
+				model['cx_%i' %i] = tf.concat(axis=1, values=[model['pFh_%i' %(dim_t - 1)], model['pBh_%i' %(0)], model['hFh_%i' %(dim_t - 1)], model['hBh_%i' %(0)]], name = 'cx_%i' %i) if i == 0 else model['cy_%i' %(i - 1)]
 				model['cy_%i' %i] = tf.add(tf.matmul(model['cx_%i' %i], model['cW_%i' %i]), model['cB_%i' %i], name = 'cy_%i' %i)
 
 		with tf.name_scope('output'):
 			model['output'] = tf.nn.softmax(model['cy_%i' %(dim_n - 1)], name = 'output')
 
 		with tf.name_scope('crossentropy'):
-			model['cce'] = tf.reduce_sum(-tf.mul(model['clabel'], tf.log(model['output'])), name = 'cce')
-			model['scce'] = tf.scalar_summary(model['cce'].name, model['cce'])
+			model['cce'] = tf.reduce_sum(-tf.multiply(model['clabel'], tf.log(model['output'])), name = 'cce')
+			model['scce'] = tf.summary.scalar(model['cce'].name, model['cce'])
 
 	model['gsms'] = tf.Variable(0, trainable = False, name = 'gsms')
 	model['lrms'] = tf.train.exponential_decay(lrate_ms, model['gsms'], dstep_ms, drate_ms, staircase = False, name = 'lrms')
