@@ -26,7 +26,6 @@ def feed(model, config, filename):
 
 def run(model, config, session, summary, filename, train):
 	iters, freq, total = config.getint('global', 'iterations') if train else 1, config.getint('global', 'frequency'), 0.
-	tf.train.Saver().restore(sess, config.get('global', 'path')) # restore existing model
 	for i in xrange(iters):
 		for ii, feeddict in enumerate(feed(model, config, filename)):
 			if train:
@@ -55,13 +54,16 @@ if __name__ == '__main__':
 
 	with tf.Session() as sess:
 		signal.signal(signal.SIGINT, handler)
-		sess.run(tf.global_variables_initializer())
 		summary = tf.summary.FileWriter(config.get('global', 'logs'), sess.graph)
-
-		if sys.argv[2] == 'train':
-			print datetime.datetime.now(), run(model, config, sess, summary, sys.argv[3], True) # train
+		if sys.argv[2] == 'init':
+			print datetime.datetime.now(), 'variables initialized'
+			sess.run(tf.global_variables_initializer())	# init variables
+		elif sys.argv[2] == 'train':
+			tf.train.Saver().restore(sess, config.get('global', 'path')) # restore existing model
+			print datetime.datetime.now(), 'training model', run(model, config, sess, summary, sys.argv[3], True) # train
 		elif sys.argv[2] == 'test':
-			print datetime.datetime.now(), run(model, config, sess, summary, sys.argv[3], False) # test
+			tf.train.Saver().restore(sess, config.get('global', 'path')) # restore existing model
+			print datetime.datetime.now(), 'testing model', run(model, config, sess, summary, sys.argv[3], False) # test
 		else:
 			print 'Invalid argument'
 			sys.exit()
